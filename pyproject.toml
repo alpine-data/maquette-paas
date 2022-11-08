@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "mq-apps"
+version = "0.1.0"
+description = "A simple application development server to develop and run (web-)apps."
+authors = ["Michael Wellner <michael.wellner@gmail.com>"]
+readme = "README.md"
+packages = [{include = "mq"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+nginx-config-builder = "^1.0.1"
+dynaconf = "^3.1.11"
+django = "^4.1.3"
+click = "^8.1.3"
+loguru = "^0.6.0"
+pathspec = "^0.10.1"
+requests = "^2.28.1"
+pyyaml = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.10.1"
+black = "^22.10.0"
+flake8 = "^5.0.4"
+mypy = "^0.990"
+poethepoet = "^0.16.4"
+django-stubs = "^1.13.0"
+types-requests = "^2.28.11.3"
+
+[tool.poetry.scripts]
+mq = "mq.main:mq"
+
+[tool.poe.tasks]
+style = [
+    { cmd = "isort mq" },
+    { cmd = "black mq" },
+    { cmd = "isort api" },
+    { cmd = "black api" }
+]
+
+quality = [
+    { cmd = "mypy mq" },
+    { cmd = "black --check mq" },
+    { cmd = "flake8 mq" },
+    { cmd = "mypy api" },
+    { cmd = "black --check api" },
+    { cmd = "flake8 api" }
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.mypy]
+disallow_untyped_defs = true
+ignore_missing_imports = true
+incremental = false
+
+[[tool.mypy.overrides]]
+module = ['dynaconf', 'nginx.*', 'pathspec']
+ignore_missing_imports = true

@@ -1,0 +1,18 @@
+[cli]
+target = "default"
+
+[cli.targets.default]
+endpoint = "http://localhost:8000"
+org = "wellnr"
+space = "test"
+
+[cli.targets.foo]
+endpoint = "http://localhost:8000"
+org = "wellnr"
+space = "test"
+
+[cli.push]
+ignore_by_default = [".mq/upload", ".git", ".DS_Store"]
+
+[server]
+working_directory = "/Users/michael.wellner/Workspaces/mq-apps--workingdir"
