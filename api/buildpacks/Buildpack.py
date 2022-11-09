@@ -1,9 +1,10 @@
 import abc
 from pathlib import Path
 
+import loguru
+
 
 class Buildpack(abc.ABC):
-
     def __init__(self, name: str) -> None:
         super().__init__()
 
@@ -18,7 +19,8 @@ class Buildpack(abc.ABC):
 
         return False
 
-    def build(self, path: Path, tag: str) -> None:
+    @abc.abstractmethod
+    def build(self, path: Path, tag: str, logger: "loguru.Logger") -> None:
         """
         Run the buildpack and create a docker image in the local docker registry.
 

@@ -2,16 +2,14 @@ import os
 import sys
 import time
 from multiprocessing import Process
-from pathlib import Path
 from typing import List
 
 import yaml
 from loguru import logger
-from api.deployment.Deployment import Deployment
 
+from api.deployment.Deployment import Deployment
 from api.deployment.DeploymentInfo import DeploymentInfo
 from api.deployment.DeploymentInfo import DeploymentStatus
-from api.deployment.Manifest import Manifest
 from mq.config import Config
 
 
@@ -31,7 +29,6 @@ class DeploymentMonitor(Process):
 
         while True:
             logger.debug("Checking for new deployments.")
-            
 
             deployments: List[str] = []
             if self.deployments_dir.is_dir() and self.deployments_dir.exists():

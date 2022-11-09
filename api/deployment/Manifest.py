@@ -1,9 +1,17 @@
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
 
 class Application:
-    
-    def __init__(self, name: str, buildback: str, env: Dict[str, str] = {}, command: Optional[str] = None, services: List[str] = []) -> None:
+    def __init__(
+        self,
+        name: str,
+        buildback: str,
+        env: Dict[str, str] = {},
+        command: Optional[str] = None,
+        services: List[str] = [],
+    ) -> None:
         self.name = name
         self.buildback = buildback
         self.env = env
@@ -17,13 +25,11 @@ class Application:
             buildback=data["buildback"],
             env=data.get("env", {}),
             command=data.get("command", None),
-            services=data.get("services", []))
+            services=data.get("services", []),
+        )
 
     def to_dict(self) -> dict:
-        result = {
-            "name": self.name,
-            "buildback": self.buildback
-        }
+        result: dict = {"name": self.name, "buildback": self.buildback}
 
         if self.env:
             result["env"] = self.env
@@ -36,8 +42,8 @@ class Application:
 
         return result
 
-class Manifest:
 
+class Manifest:
     def __init__(self, applications: List[Application] = []) -> None:
         self.applications = applications
 
@@ -45,14 +51,16 @@ class Manifest:
 
     @staticmethod
     def from_dict(data: dict) -> "Manifest":
-        applications = list([ Application.from_dict(app) for app in data.get("applications", []) ])
+        applications = list(
+            [Application.from_dict(app) for app in data.get("applications", [])]
+        )
         return Manifest(applications)
 
     def to_dict(self) -> dict:
-        result = {}
+        result: dict = {}
 
         if self.applications:
-            result["applications"] = list([ app.to_dict() for app in self.applications ])
+            result["applications"] = list([app.to_dict() for app in self.applications])
 
         return result
 
