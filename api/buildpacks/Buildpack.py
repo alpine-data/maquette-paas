@@ -31,3 +31,6 @@ class Buildpack(abc.ABC):
         tag : str
             The image tag which should be created.
         """
+
+    def webapp_port(self) -> int:
+        return 3000

@@ -2,6 +2,23 @@
 
 A simple application development server to develop and run (web-)apps.
 
+## Run Server
+
+```
+$ docker build 
+
+$ docker create network mq-apps
+
+$ docker run \
+  -d \
+  --privileged \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -p 9042:80 \
+  --name mq-apps \
+  --network mq-apps \
+  mq-apps:0.0.1
+```
+
 ## Manifests
 
 ```yml

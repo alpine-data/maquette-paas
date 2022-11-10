@@ -3,6 +3,9 @@ FROM busybox:1.35
 # External Port, might be overriden
 ENV PORT 3000
 
+# External Port
+EXPOSE 3000
+
 # Create a non-root user to own the files and run our server
 RUN adduser -D static
 USER static
@@ -13,4 +16,4 @@ WORKDIR /home/static
 COPY . .
 
 # Run BusyBox httpd
-CMD ["busybox", "httpd", "-f", "-v", "-p", "$PORT"]
+CMD ["sh", "-c", "busybox httpd -f -v -p $PORT"]

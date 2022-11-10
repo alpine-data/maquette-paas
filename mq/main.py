@@ -3,6 +3,7 @@ import os
 import click
 from django.core.management import execute_from_command_line
 from loguru import logger
+from api.deployment.Infrastructure import Infrastructure
 
 from mq.cli.push import Push
 
@@ -14,8 +15,23 @@ def mq() -> None:
     """
 
 
-@mq.command()
+@mq.group()
 def server() -> None:
+    """
+    
+    """
+
+@server.command()
+def configure_nginx() -> None:
+    """
+    Configure the local NGINX. Usually used for inital config.
+    """
+
+    Infrastructure.update_load_balancer(False)
+
+
+@server.command()
+def run() -> None:
     """
     Starts the Maquette Apps Server.
     """

@@ -1,13 +1,13 @@
 [cli]
-target = "default"
+target = "docker"
 
 [cli.targets.default]
 endpoint = "http://localhost:8000"
 org = "wellnr"
 space = "test"
 
-[cli.targets.foo]
-endpoint = "http://localhost:8000"
+[cli.targets.docker]
+endpoint = "http://localhost:9042"
 org = "wellnr"
 space = "test"
 
@@ -15,4 +15,11 @@ space = "test"
 ignore_by_default = [".mq/upload", ".git", ".DS_Store"]
 
 [server]
+domain = "home.wellnr.de"
 working_directory = "/Users/michael.wellner/Workspaces/mq-apps--workingdir"
+network_name = "mq-apps"
+deployment_timeout_in_seconds = 120
+
+[server.nginx]
+pid_file = "/usr/local/etc/nginx/logs/nginx.pid"
+config_file = "/usr/local/etc/nginx/nginx.conf"

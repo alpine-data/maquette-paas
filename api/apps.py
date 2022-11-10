@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 
 from api.deployment.DeploymentProcess import DeploymentMonitor
+from api.deployment.Infrastructure import Infrastructure
 
 
 class ApiConfig(AppConfig):
@@ -10,4 +11,5 @@ class ApiConfig(AppConfig):
     def ready(self) -> None:
         super().ready()
 
+        Infrastructure.restore_instances()
         DeploymentMonitor().start()

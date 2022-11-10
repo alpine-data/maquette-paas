@@ -1,9 +1,15 @@
+from time import sleep
+import traceback
+
+import docker
 import yaml
+from docker.models.containers import Container
 from loguru import logger
 
 from api.buildpacks.Buildpacks import Buildpacks
 from api.deployment.DeploymentInfo import DeploymentInfo
 from api.deployment.DeploymentInfo import DeploymentStatus
+from api.deployment.Infrastructure import Infrastructure
 from api.deployment.Manifest import Application
 from api.deployment.Manifest import Manifest
 from mq.config import Config
@@ -27,22 +33,85 @@ class Deployment:
         self.log.info("Started deployment {}", self.id)
 
         try:
+            #
+            # Deploy specified applications.
+            #
             manifest = self._read_manifest()
             for app in manifest.applications:
                 self.deploy_application(app)
 
+            #
+            # Update NGINX.
+            #
+            Infrastructure.discard_old_instances()
+            Infrastructure.update_load_balancer()
+
             self._update_status(DeploymentStatus.succeeded)
         except Exception as err:
+            traceback.print_exception(err)
             self.log.error(str(err))
             self._update_status(DeploymentStatus.failed)
 
     def deploy_application(self, application: Application) -> None:
         """ """
-        self.log.info("Deploying `{}`.", application.name)
-        buildpack = Buildpacks.get(application.buildback)
-        buildpack.build(
-            self.working_dir / "files", f"{application.name}:{self.id}", self.log
+
+        #
+        # Build image with buildpack.
+        #
+        self.log.info(
+            "Building `{}` with `{}`.", application.name, application.buildback
         )
+
+        buildpack = Buildpacks.get(application.buildback)
+        image_tag = f"{application.name}:{self.id}"
+        buildpack.build(self.working_dir / "files", image_tag, self.log)
+
+        #
+        # Deploy image.
+        #
+        self.log.info("Starting `{}`", application.name, application.buildback)
+        docker_client = docker.from_env()
+
+        container: Container = docker_client.containers.run(
+            image_tag,
+            name=f"mq--{application.name}--{self.id}",
+            detach=True,
+            environment={"PORT": 3000},
+            network=Config.Server.network_name,
+            labels={
+                "MQ__APPLICATION": yaml.safe_dump(application.to_dict()),
+                "MQ__DEPLOYMENT_ID": self.id,
+                "MQ__PORT": str(buildpack.webapp_port())
+            },
+            publish_all_ports=True,
+        )
+
+        self.log.info(
+            "Initialized `{}/{}` with status `{}`",
+            container.id,
+            container.name,
+            container.status,
+        )
+
+        #
+        # Wait until started.
+        #
+        Infrastructure.wait_until_started(container.id, self.log)
+        container.reload()
+
+        #
+        # Check status.
+        #
+        if container.status == "running":
+            self.log.info("Succesffully started app `{}`.", application.name)
+        else:
+            self.log.error(
+                "Application `{}` did not start within specified timeout of {} seconds. Killing application.",
+                application.name,
+                Config.Server.deployment_timeout_in_seconds,
+            )
+            container.stop()
+            raise Exception("An error occurred while starting app.")
 
     def _read_manifest(self) -> Manifest:
         """
