@@ -1,11 +1,10 @@
-import os
-
 import click
-from django.core.management import execute_from_command_line
+import uvicorn
 from loguru import logger
-from api.deployment.Infrastructure import Infrastructure
 
 from mq.cli.push import Push
+from mq.deployment.DeploymentProcess import DeploymentMonitor
+from mq.deployment.Infrastructure import Infrastructure
 
 
 @click.group()
@@ -17,9 +16,8 @@ def mq() -> None:
 
 @mq.group()
 def server() -> None:
-    """
-    
-    """
+    """ """
+
 
 @server.command()
 def configure_nginx() -> None:
@@ -36,12 +34,14 @@ def run() -> None:
     Starts the Maquette Apps Server.
     """
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mq.settings")
-
     logger.info("Starting Maquette Apps.")
 
-    execute_from_command_line(argv=["manage.py", "migrate"])
-    execute_from_command_line(argv=["manage.py", "runserver", "--noreload"])
+    Infrastructure.restore_instances()
+    DeploymentMonitor().start()
+
+    config = uvicorn.Config("mq.server:app", port=8000, log_level="info")
+    server = uvicorn.Server(config)
+    server.run()
 
 
 @mq.command()

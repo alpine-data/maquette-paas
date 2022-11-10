@@ -7,8 +7,8 @@ import requests
 from pathspec import PathSpec
 from requests import Response
 
-from api.deployment.DeploymentInfo import DeploymentStatus
 from mq.config import Config
+from mq.deployment.DeploymentInfo import DeploymentStatus
 
 
 class Push:
@@ -33,7 +33,7 @@ class Push:
         # Upload to backend
         with open(zip_file, "rb") as f:
             result = requests.post(
-                f"{Config.CLI.Target.endpoint}/api/{Config.CLI.Target.space}/push",
+                f"{Config.CLI.Target.endpoint}/api/push",
                 files={"files": f},
             )
             deployment_id = result.json()["id"]
@@ -59,7 +59,7 @@ class Push:
             time.sleep(3)
 
             logs_response: Response = requests.get(
-                f"{Config.CLI.Target.endpoint}/api/{Config.CLI.Target.space}/push/{deployment_id}"
+                f"{Config.CLI.Target.endpoint}/api/push/{deployment_id}"
             )
             logs = logs_response.text
 

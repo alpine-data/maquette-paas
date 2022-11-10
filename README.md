@@ -4,7 +4,7 @@ A simple application development server to develop and run (web-)apps.
 
 ## Run Server
 
-```
+```bash
 $ docker build 
 
 $ docker create network mq-apps

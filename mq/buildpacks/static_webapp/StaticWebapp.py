@@ -4,8 +4,8 @@ from pathlib import Path
 import docker
 import loguru
 
-from api.buildpacks import static_webapp
-from api.buildpacks.Buildpack import Buildpack
+from mq.buildpacks import static_webapp
+from mq.buildpacks.Buildpack import Buildpack
 
 
 class StaticWebapp(Buildpack):

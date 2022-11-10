@@ -1,17 +1,13 @@
 import os
 import signal
-from email.mime import application
 from pathlib import Path
 from time import sleep
-import traceback
 from typing import Dict
 from typing import List
 from typing import Set
 
 import docker
-from dynaconf.utils.functional import Empty
 import loguru
-from nginx.config.api.blocks import EmptyBlock
 import yaml
 from docker.models.containers import Container
 from loguru import logger
@@ -19,10 +15,11 @@ from nginx.config.api import Comment
 from nginx.config.api import Config as NGINXConfig
 from nginx.config.api import Location
 from nginx.config.api import Section
+from nginx.config.api.blocks import EmptyBlock
 from nginx.config.helpers import duplicate_options
 
-from api.deployment.Manifest import Application
 from mq.config import Config
+from mq.deployment.Manifest import Application
 
 
 class ApplicationInstance:
@@ -33,7 +30,7 @@ class ApplicationInstance:
         container_id: str,
         container_name: str,
         webapp_port: int,
-        status: str
+        status: str,
     ) -> None:
 
         self.application = application
@@ -149,9 +146,9 @@ class Infrastructure:
                 deployment_id = container.labels["MQ__DEPLOYMENT_ID"].strip()
                 webapp_port = container.labels["MQ__PORT"].strip()
 
-                assert len(application_yml) > 0, f"`MQ__APPLICATION` must be set."
-                assert len(deployment_id) > 0, f"`MQ__DEPLOYMENT_ID` must be set."
-                assert len(webapp_port) > 0, f"`MQ__PORT` must be set."
+                assert len(application_yml) > 0, "`MQ__APPLICATION` must be set."
+                assert len(deployment_id) > 0, "`MQ__DEPLOYMENT_ID` must be set."
+                assert len(webapp_port) > 0, "`MQ__PORT` must be set."
 
                 instances.append(
                     ApplicationInstance(
@@ -166,11 +163,10 @@ class Infrastructure:
                     )
                 )
             except Exception as e:
-                traceback.print_exc(e)
                 logger.warning(
                     "Unable to fetch environment information from container `{}`: {}.",
                     container.name,
-                    e
+                    e,
                 )
 
         return instances
@@ -195,28 +191,32 @@ class Infrastructure:
 
         servers: List[EmptyBlock] = []
         for app in apps:
-            servers.append(EmptyBlock(
-                Comment(comment=f"{app.application.name} ({app.deployment_id})"),
+            servers.append(
+                EmptyBlock(
+                    Comment(comment=f"{app.application.name} ({app.deployment_id})"),
+                    Section(
+                        "server",
+                        Location(
+                            "/",
+                            proxy_pass=f"http://{app.container_name}:{app.webapp_port}",
+                        ),
+                        server_name=f"{app.application.name}.{Config.Server.domain}",
+                    ),
+                )
+            )
+
+        servers.append(
+            EmptyBlock(
+                Comment(comment="MQ Server Proxy"),
                 Section(
                     "server",
-                    Location(
-                        "/",
-                        proxy_pass=f"http://{app.container_name}:{app.webapp_port}",
+                    duplicate_options(
+                        "listen", ["80 default_server", "[::]:80 default_server"]
                     ),
-                    server_name=f"{app.application.name}.{Config.Server.domain}",
+                    Location("/", proxy_pass="http://localhost:8000"),
                 ),
-            ))
-
-        
-
-        servers.append(EmptyBlock(
-            Comment(comment=f"MQ Server Proxy"),
-            Section(
-                "server",
-                duplicate_options("listen", ["80 default_server", "[::]:80 default_server"]),
-                Location("/", proxy_pass="http://localhost:8000")
             )
-        ))
+        )
 
         http.sections.add(duplicate_options("server", servers))
 
@@ -249,13 +249,15 @@ class Infrastructure:
         waited_seconds = 0
         container = docker_client.containers.get(id)
 
+        assert isinstance(container, Container)
+
         while (
             container.status != "running"
             and waited_seconds < Config.Server.deployment_timeout_in_seconds
         ):
             log.info(
-                "Waiting for app `{}`, current status is `{}` ...",
-                application.name,
+                "Waiting for container `{}`, current status is `{}` ...",
+                container.name,
                 container.status,
             )
             sleep(5)

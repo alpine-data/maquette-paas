@@ -1,4 +1,3 @@
-from time import sleep
 import traceback
 
 import docker
@@ -6,13 +5,13 @@ import yaml
 from docker.models.containers import Container
 from loguru import logger
 
-from api.buildpacks.Buildpacks import Buildpacks
-from api.deployment.DeploymentInfo import DeploymentInfo
-from api.deployment.DeploymentInfo import DeploymentStatus
-from api.deployment.Infrastructure import Infrastructure
-from api.deployment.Manifest import Application
-from api.deployment.Manifest import Manifest
+from mq.buildpacks.Buildpacks import Buildpacks
 from mq.config import Config
+from mq.deployment.DeploymentInfo import DeploymentInfo
+from mq.deployment.DeploymentInfo import DeploymentStatus
+from mq.deployment.Infrastructure import Infrastructure
+from mq.deployment.Manifest import Application
+from mq.deployment.Manifest import Manifest
 
 
 class Deployment:
@@ -81,7 +80,7 @@ class Deployment:
             labels={
                 "MQ__APPLICATION": yaml.safe_dump(application.to_dict()),
                 "MQ__DEPLOYMENT_ID": self.id,
-                "MQ__PORT": str(buildpack.webapp_port())
+                "MQ__PORT": str(buildpack.webapp_port()),
             },
             publish_all_ports=True,
         )

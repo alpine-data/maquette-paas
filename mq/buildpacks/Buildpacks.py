@@ -1,7 +1,7 @@
 from typing import List
 
-from api.buildpacks.Buildpack import Buildpack
-from api.buildpacks.static_webapp.StaticWebapp import StaticWebapp
+from mq.buildpacks.Buildpack import Buildpack
+from mq.buildpacks.static_webapp.StaticWebapp import StaticWebapp
 
 
 class Buildpacks:

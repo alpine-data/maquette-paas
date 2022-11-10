@@ -7,10 +7,10 @@ from typing import List
 import yaml
 from loguru import logger
 
-from api.deployment.Deployment import Deployment
-from api.deployment.DeploymentInfo import DeploymentInfo
-from api.deployment.DeploymentInfo import DeploymentStatus
 from mq.config import Config
+from mq.deployment.Deployment import Deployment
+from mq.deployment.DeploymentInfo import DeploymentInfo
+from mq.deployment.DeploymentInfo import DeploymentStatus
 
 
 class DeploymentMonitor(Process):

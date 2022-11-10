@@ -9,7 +9,7 @@ settings = Dynaconf(
     settings_files=[
         "settings.toml",
         ".secrets.toml",
-        "/Users/michael.wellner/.mq/config.toml",
+        "/Users/michael.wellner/.mq/config.toml",  # TODO mw: use user home ...
     ],
 )
 
